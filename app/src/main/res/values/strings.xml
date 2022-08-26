@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">ChatApp</string>
+    <string name="action_settings">Settings</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+
+    <string name="app_id">A000SHY004</string>
+    <string name="ch_1">ch_1</string>
+    <string name="ch_2">ch_2</string>
+    <string name="system_no_service_type_r_message">Remote connections are not available on mobile.</string>
+    <string name="system_no_service_type_message">This message is not supported in this version of CUBE. Please update your CUBE to the latest version.</string>
+
+</resources>

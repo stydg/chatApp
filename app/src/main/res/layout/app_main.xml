@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <!--topBar-->
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_alignParentTop="true"
+        android:weightSum="10">
+
+        <ImageButton
+            android:id="@+id/btn_menu"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/baseline_menu_36"
+            android:layout_weight="1.2"/>
+        <TextView
+            android:id="@+id/chat_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="chatSample"
+            android:textSize="25dp"
+            android:layout_gravity="center_vertical"
+            android:gravity="center"
+            android:layout_weight="7.6"/>
+        <ImageButton
+            android:id="@+id/btn_close"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/baseline_close_36"
+            android:layout_weight="1.2"
+            android:visibility="visible"/>
+    </LinearLayout>
+
+    <!--chatlist-->
+    <LinearLayout
+        android:id="@+id/chatview_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/topBar"
+        android:layout_above="@+id/chatbar">
+        <ListView
+            android:id="@+id/chatview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:divider="@null"
+            android:dividerHeight="0dp"/>
+    </LinearLayout>
+
+    <!--chat input bar-->
+    <LinearLayout
+        android:id="@+id/chatbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="2dp"
+        android:layout_alignParentBottom="true">
+
+        <EditText
+            android:id="@+id/inputText"
+            android:layout_weight="8"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:hint="message here"
+            android:text=""
+            android:textSize="20dp"
+            android:padding="10dp"
+            android:gravity="fill_vertical"
+            android:layout_gravity="center"
+            android:background="@color/channelNotiBg"/>
+        <Button
+            android:id="@+id/btn_send"
+            android:layout_weight="2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="send"
+            android:textSize="15dp"
+            android:layout_gravity="center"
+            android:textColor="@color/black"/>
+    </LinearLayout>
+</RelativeLayout>

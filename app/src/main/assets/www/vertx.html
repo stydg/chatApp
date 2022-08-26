@@ -1,0 +1,259 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
+    <title></title>
+    <script src="js/jquery-1.12.3.min.js"></script>
+    <script src="js/sockjs.min.js"></script>
+    <script src="js/vertx-eventbus.js"></script>
+    <script src="js/json2.js"></script>
+
+    <script type="text/javascript">
+    var eb, ctp = 2; //0 - WEB, 1 - PC, 2 - Mobile(ANDROID), 3 - Mobile(IOS)
+    var lngType = 1;
+    var serverurl;
+	var sessionkey = "";
+	var clienthandler = function (err, msg) {
+            var jsonResult = new Object();
+            jsonResult["api"] = "push";
+            jsonResult["result"] = msg;
+            Android.msg(String(JSON.stringify(jsonResult)));
+	};
+
+	
+	function disconnect(){
+	    try {
+		    eb.sockJSConn.close();
+		}catch(e){
+			console.log(e);
+		}
+	}
+	function connect(url, uuid, languageType){
+	    serverurl = url;
+	    lngType = languageType;
+	    try {
+			if(!eb && sessionkey != uuid && uuid.indexOf("/eventbus") == -1) {
+			    openConn(url, uuid);
+			}else{
+			    disconnect();
+			    reOpenConn(url, uuid);
+			}
+// 			else{
+// 			    eb.onclose();
+// 			    openConn(url, uuid);
+// 			}
+		}catch(e){
+			console.log(e);
+		}
+	}
+
+
+    function openConn(url, uuid) {
+		ebConnEvent(url);
+		connEvent(uuid);
+	}
+    function reOpenConn(url, uuid) {
+		ebConnEvent(url);
+		reConnEvent(uuid);
+	}
+	function ebConnEvent(url) {
+		if (eb == undefined || eb.state == EventBus.CLOSED) {
+			eb = new EventBus(url);
+		}
+	}
+	function reConnEvent(uuid) {
+		eb.onopen = function() {
+            Android.msg("reopen");
+			console.log("Connection Open by eventbus.onopen")
+
+			var jsonHeader = new Object();
+			jsonHeader["client"] = ctp;
+			jsonHeader["languageType"] = lngType;
+			jsonHeader["UUID"] = uuid;
+
+
+            var jsonBody = new Object();
+
+			eb.send("websocket.apiauth", jsonBody, jsonHeader, function(err, msg){
+				sessionkey = msg.body;
+				var jsonHeader = new Object();
+				jsonHeader["client"] = ctp;
+				jsonHeader["UUID"] = sessionkey;
+				Android.setSession(msg.body);
+				if(sessionkey != 'fail'){
+				    eb.registerHandler("client.api."+sessionkey, jsonHeader, clienthandler);
+                }
+
+                var jsonResult = new Object();
+                jsonResult["api"] = "auth";
+                jsonResult["result"] = msg;
+                Android.msg(String(JSON.stringify(jsonResult)));
+			});
+
+		};
+		eb.onclose = function() {
+            var jsonResult = new Object();
+            jsonResult["api"] = "auth";
+            jsonResult["message"] = "Connection Closed by eventbus.onclose";
+			Android.close(String(JSON.stringify(jsonResult)));
+			console.log("Connection Closed by eventbus.onclose");
+		};
+	}
+	function connEvent(uuid) {
+		eb.onopen = function() {
+            Android.msg("open");
+			console.log("Connection Open by eventbus.onopen")
+
+			var jsonHeader = new Object();
+			jsonHeader["client"] = ctp;
+			jsonHeader["languageType"] = lngType;
+
+            var jsonBody = new Object();
+            jsonBody["sessionkey"] = uuid;
+
+			eb.send("websocket.apiauth", jsonBody, jsonHeader, function(err, msg){
+				sessionkey = msg.body;
+				var jsonHeader = new Object();
+				jsonHeader["client"] = ctp;
+				jsonHeader["UUID"] = sessionkey;
+				Android.setSession(msg.body);
+				if(sessionkey != 'fail'){
+				    eb.registerHandler("client.api."+sessionkey, jsonHeader, clienthandler);
+                }
+
+                var jsonResult = new Object();
+                jsonResult["api"] = "auth";
+                jsonResult["result"] = msg;
+                Android.msg(String(JSON.stringify(jsonResult)));
+			});
+
+		};
+		eb.onclose = function() {
+            var jsonResult = new Object();
+            jsonResult["api"] = "auth";
+            jsonResult["message"] = "Connection Closed by eventbus.onclose";
+			Android.close(String(JSON.stringify(jsonResult)));
+			console.log("Connection Closed by eventbus.onclose");
+		};
+	}
+
+	function send(address, headerString, bodyString) {
+		var jsonHeader = new Object();
+        jsonHeader["client"] = ctp;
+        jsonHeader["UUID"] = sessionkey;
+        jsonHeader["languageType"] = lngType;
+
+        if(headerString != ''){
+            var header = JSON.parse(headerString);
+            //console.log("jsonHeader="+JSON.stringify(jsonHeader));
+            //console.log("headString="+headString);
+            for (var headerName in header) {
+                if (header.hasOwnProperty(headerName)) {
+                    if (typeof jsonHeader[headerName] === 'undefined') {
+                        jsonHeader[headerName] = header[headerName];
+                    }
+                }
+            }
+            //console.log("jsonHeader="+JSON.stringify(jsonHeader));
+        }
+
+        var jsonBody = new Object();
+
+        if(bodyString != ''){
+            var body = JSON.parse(bodyString.replace(/&#39;/g, "\'"));
+            //console.log("jsonBody="+JSON.stringify(body));
+            //console.log("bodyString="+bodyString);
+            for (var bodyName in body) {
+                if (body.hasOwnProperty(bodyName)) {
+                    if (typeof jsonBody[bodyName] === 'undefined') {
+                        jsonBody[bodyName] = body[bodyName];
+                    }
+                }
+            }
+            //console.log("jsonBody="+JSON.stringify(jsonBody));
+        }
+
+        eb.send(address, jsonBody, jsonHeader, function (err, msg) {
+            var jsonResult = new Object();
+            jsonResult["api"] = address;
+            jsonResult["result"] = msg;
+	        Android.msg(String(JSON.stringify(jsonResult)));
+	    });
+	}
+
+	function register(address, headerString){
+		var jsonHeader = new Object();
+        jsonHeader["client"] = ctp;
+        jsonHeader["UUID"] = sessionkey;
+        jsonHeader["languageType"] = lngType;
+
+        if(headerString != ''){
+            var header = JSON.parse(headerString);
+            //console.log("jsonHeader="+JSON.stringify(jsonHeader));
+            //console.log("headString="+headString);
+            for (var headerName in header) {
+                if (header.hasOwnProperty(headerName)) {
+                    if (typeof jsonHeader[headerName] === 'undefined') {
+                        jsonHeader[headerName] = header[headerName];
+                    }
+                }
+            }
+            //console.log("jsonHeader="+JSON.stringify(jsonHeader));
+        }
+
+        eb.registerHandler(address, jsonHeader, function (err, msg) {
+            var jsonResult = new Object();
+            jsonResult["api"] = address;
+            jsonResult["result"] = msg;
+	        Android.msg(String(JSON.stringify(jsonResult)));
+	    });
+	}
+
+	function unregister(address, headerString){
+		var jsonHeader = new Object();
+        jsonHeader["client"] = ctp;
+        jsonHeader["UUID"] = sessionkey;
+        jsonHeader["languageType"] = lngType;
+
+        if(headerString != ''){
+            var header = JSON.parse(headerString);
+            //console.log("jsonHeader="+JSON.stringify(jsonHeader));
+            //console.log("headString="+headString);
+            for (var headerName in header) {
+                if (header.hasOwnProperty(headerName)) {
+                    if (typeof jsonHeader[headerName] === 'undefined') {
+                        jsonHeader[headerName] = header[headerName];
+                    }
+                }
+            }
+            //console.log("jsonHeader="+JSON.stringify(jsonHeader));
+        }
+        eb.unregisterHandler(address, jsonHeader, function (err, msg) {
+            var jsonResult = new Object();
+            jsonResult["api"] = address;
+            jsonResult["result"] = msg;
+	        Android.msg(String(JSON.stringify(jsonResult)));
+	    });
+	}
+function checkConnect(){
+        Android.status(eb.state);
+	    if(eb.state != EventBus.OPEN){
+	        connect(serverurl, sessionkey);
+	        //delay(5*1000);
+	    }
+}
+function delay(gap){ /* gap is in millisecs */
+  var then,now;
+  then=new Date().getTime();
+  now=then;
+  while((now-then)<gap){
+    now=new Date().getTime();  // 현재시간을 읽어 함수를 불러들인 시간과의 차를 이용하여 처리
+  }
+}
+    </script>
+
+</head>
+<body>
+</body>
+</html>
